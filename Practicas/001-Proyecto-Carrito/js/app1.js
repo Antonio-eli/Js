@@ -14,10 +14,16 @@ function cargarEventListeners() {
     listaCursos.addEventListener('click', agregarCurso);
     // Elimina cursos del carrito.
     carrito.addEventListener('click', eliminarCurso);
+    // Muestra los cursos de localStorage
+    document.addEventListener('DOMContentLoaded', () => {
+        articulosCarrito = JSON.parse(localStorage.getItem('carrito')) || [];
+        console.log(articulosCarrito);
+        carritoHTML();
+    });
     // vaciar el HTML.
     document.querySelector('#vaciar-carrito').addEventListener('click', () => {
         articulosCarrito = [];
-
+        // carritoHTML();
         LimpiarHTML();
     });
 }
@@ -91,7 +97,15 @@ function carritoHTML() {
         // Agrega el HTML del carrito en el tbody.
         contenedorCarrito.appendChild(row);
     });
+
+    // Agregar el carrito al storage
+    sincronizarStorage();
 }
+
+function sincronizarStorage() {
+    localStorage.setItem('carrito', JSON.stringify(articulosCarrito));
+}
+
 // Elimina un curso duplicado y actualiza la cantidad
 function eliminarCurso(e) {
     if (e.target.classList.contains('borrar-curso')) {
@@ -114,6 +128,7 @@ function eliminarCurso(e) {
         });
     }
 }
+
 // Elimina los cursos del tbody.
 function LimpiarHTML() {
     // Forma lenta
@@ -122,5 +137,7 @@ function LimpiarHTML() {
     while (contenedorCarrito.firstChild) {
         contenedorCarrito.removeChild(contenedorCarrito.firstChild);
     }
+    sincronizarStorage();
 }
+
 //* Ejecución de código.
