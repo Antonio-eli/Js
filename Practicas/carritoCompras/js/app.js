@@ -34,20 +34,18 @@ function agregarCurso(e) {
 function eliminarCurso(e) {
     if (e.target.classList.contains('borrar-curso')) {
         const cursoId = e.target.getAttribute('data-id');
-        const existe = articulosCarrito.some(curso => {
+        articulosCarrito.some(curso => {
             if (curso.id === cursoId) {
-                curso.cantidad--;
-                carritoHTML();
-            } else {
-                articulosCarrito = articulosCarrito.filter((curso) => curso.id !== cursoId);
-                carritoHTML();
+                if (curso.cantidad > 1) {
+                    curso.cantidad--;
+                } else {
+                    //Elimina del arreglo articulosCarrito por el data-id
+                    msgSwalDelete();
+                    articulosCarrito = articulosCarrito.filter(curso => curso.id !== cursoId);
+                    carritoHTML();
+                }
             }
-        })
-
-        //Elimina del arreglo articulosCarrito por el data-id
-        msgSwalDelete();
-        articulosCarrito = articulosCarrito.filter(curso => curso.id !== cursoId);
-        console.log(articulosCarrito);
+        });
         carritoHTML();
     }
 }
