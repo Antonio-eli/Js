@@ -10,6 +10,16 @@ cargarEventListeners();
 
 function cargarEventListeners() {
     listaCursos.addEventListener('click', agregarCurso);
+
+    //Elimina cursos del carrito
+    carrito.addEventListener('click', eliminarCurso);
+
+    //Vaciar carrito de compras
+    vaciarCarrito.addEventListener('click', () => {
+        msgSwalVaciar();
+        articulosCarrito = []; //Reseteamos el arreglo
+        limpiarHTML();
+    });
 }
 
 function agregarCurso(e) {
@@ -17,6 +27,28 @@ function agregarCurso(e) {
     if (e.target.classList.contains('agregar-carrito')) {
         const cursoSeleccionado = e.target.parentElement.parentElement;
         leerDatosCurso(cursoSeleccionado);
+    }
+}
+
+//Elimina un curso del carrito
+function eliminarCurso(e) {
+    if (e.target.classList.contains('borrar-curso')) {
+        const cursoId = e.target.getAttribute('data-id');
+        const existe = articulosCarrito.some(curso => {
+            if (curso.id === cursoId) {
+                curso.cantidad--;
+                carritoHTML();
+            } else {
+                articulosCarrito = articulosCarrito.filter((curso) => curso.id !== cursoId);
+                carritoHTML();
+            }
+        })
+
+        //Elimina del arreglo articulosCarrito por el data-id
+        msgSwalDelete();
+        articulosCarrito = articulosCarrito.filter(curso => curso.id !== cursoId);
+        console.log(articulosCarrito);
+        carritoHTML();
     }
 }
 
@@ -47,6 +79,7 @@ function leerDatosCurso(curso) {
         articulosCarrito = [...cursos];
     } else {
         // Agrega elementos al arreglo del carrito
+        msgSwal();
         articulosCarrito = [...articulosCarrito, infoCurso];
     }
     console.log(articulosCarrito);
@@ -82,4 +115,63 @@ function limpiarHTML() {
     while (contenedorCarrito.firstChild) {
         contenedorCarrito.removeChild(contenedorCarrito.firstChild)
     }
+}
+
+//Swal
+function msgSwal() {
+    swal.fire({
+        title: "Producto guardado correctamente",
+        text: "termina tu compra en el carrito de compras",
+        icon: "success",
+    });
+}
+
+function msgSwalDelete() {
+    swal.fire({
+        title: '¿Estas seguro?',
+        text: "de eliminar el producto del carrito!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Si',
+        cancelButtonText: 'No',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            swal.fire({
+                text: 'Producto eliminado',
+                icon: "success"
+            })
+        } else if (
+            /* Read more about handling dismissals below */
+            result.dismiss === Swal.DismissReason.cancel
+        ) {
+            swal.fire(
+                'Bien sigue con la compra :)'
+            )
+        }
+    })
+}
+
+function msgSwalVaciar() {
+    let timerInterval
+    Swal.fire({
+        title: 'Vaciando carrito',
+        timer: 2000,
+        timerProgressBar: true,
+        didOpen: () => {
+            Swal.showLoading()
+            const b = Swal.getHtmlContainer().querySelector('b')
+            timerInterval = setInterval(() => {
+                b.textContent = Swal.getTimerLeft()
+            }, 100)
+        },
+        willClose: () => {
+            clearInterval(timerInterval)
+        }
+    }).then((result) => {
+        /* Read more about handling dismissals below */
+        if (result.dismiss === Swal.DismissReason.timer) {
+            console.log('I was closed by the timer')
+        }
+    })
 }
