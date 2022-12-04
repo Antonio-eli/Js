@@ -40,9 +40,32 @@ function eliminarCurso(e) {
                 if (curso.cantidad > 1) {
                     curso.cantidad--;
                 } else {
-                    //Elimina del arreglo articulosCarrito por el data-id
-                    msgSwalDelete();
-                    articulosCarrito = articulosCarrito.filter(curso => curso.id !== cursoId);
+
+                    swal.fire({
+                        title: '¿Estas seguro?',
+                        text: "de eliminar el producto del carrito!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Si',
+                        cancelButtonText: 'No',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            //Elimina del arreglo articulosCarrito por el data-id
+                            articulosCarrito = articulosCarrito.filter(curso => curso.id !== cursoId);
+                            swal.fire({
+                                text: 'Producto eliminado',
+                                icon: "success"
+                            })
+                        } else if (
+                            /* Read more about handling dismissals below */
+                            result.dismiss === Swal.DismissReason.cancel
+                        ) {
+                            swal.fire(
+                                'Bien sigue con la compra :)'
+                            )
+                        }
+                    })
                     carritoHTML();
                 }
             }
@@ -149,32 +172,6 @@ function msgSwal() {
 
     //text: "termina tu compra en el carrito de compras",
 
-}
-
-function msgSwalDelete() {
-    swal.fire({
-        title: '¿Estas seguro?',
-        text: "de eliminar el producto del carrito!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Si',
-        cancelButtonText: 'No',
-        reverseButtons: true
-    }).then((result) => {
-        if (result.isConfirmed) {
-            swal.fire({
-                text: 'Producto eliminado',
-                icon: "success"
-            })
-        } else if (
-            /* Read more about handling dismissals below */
-            result.dismiss === Swal.DismissReason.cancel
-        ) {
-            swal.fire(
-                'Bien sigue con la compra :)'
-            )
-        }
-    })
 }
 
 function msgSwalVaciar() {
