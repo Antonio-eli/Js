@@ -34,6 +34,7 @@ function agregarCurso(e) {
 function eliminarCurso(e) {
     if (e.target.classList.contains('borrar-curso')) {
         const cursoId = e.target.getAttribute('data-id');
+        console.log("cursoId", cursoId);
         articulosCarrito.some(curso => {
             if (curso.id === cursoId) {
                 if (curso.cantidad > 1) {
@@ -52,35 +53,46 @@ function eliminarCurso(e) {
 
 //Lee el contenido del HTML y extrae la informacion del curso
 function leerDatosCurso(curso) {
-    //console.log(curso);
+    //Curso trae el HTML que pasamos en la funcion agregar curso
+    console.log("curso ->", curso);
 
     //Crear un objeto con el contenido del curso actual
     const infoCurso = {
-            imagen: curso.querySelector('img').src,
-            titulo: curso.querySelector('h4').textContent,
-            precio: curso.querySelector('.precio span').textContent,
-            id: curso.querySelector('a').getAttribute('data-id'),
-            cantidad: 1
-        }
-        //Revisa si un elemento ya existe en el carrito
+        imagen: curso.querySelector('img').src,
+        titulo: curso.querySelector('h4').textContent,
+        precio: curso.querySelector('.precio span').textContent,
+        id: curso.querySelector('a').getAttribute('data-id'),
+        cantidad: 1
+    }
+
+    console.log("infoCurso ->", infoCurso);
+
+    //Revisa si un elemento ya existe en el carrito
     const existe = articulosCarrito.some(curso => curso.id === infoCurso.id);
+    console.log("existe -> ", existe);
     if (existe) {
-        //Actualizamos la cantidad
+        //Actualizamos la cantidad en el Modal carrito
         const cursos = articulosCarrito.map(curso => {
             if (curso.id === infoCurso.id) {
+                let precioCruso = Number(infoCurso.precio.slice(1, infoCurso.precio.length))
+                console.log("precioCruso -> ", precioCruso);
+                msgSwal();
                 curso.cantidad++;
+
+                //Actualiza el precio
+                curso.precio = `$${precioCruso * curso.cantidad}`
                 return curso; //Retorna el objeto actualizado
             } else {
-                return curso; //Retorna objetos que no son duplicados
+                return curso; //Retorna los objetos que no son duplicados
             }
         });
         articulosCarrito = [...cursos];
     } else {
-        // Agrega elementos al arreglo del carrito
+        // Agrega el curso al arreglo del carrito
         msgSwal();
         articulosCarrito = [...articulosCarrito, infoCurso];
     }
-    console.log(articulosCarrito);
+    console.log("articulosCarrito ->", articulosCarrito);
     carritoHTML();
 }
 
@@ -100,7 +112,7 @@ function carritoHTML() {
         <td>${precio}</td>
         <td>${cantidad}</td>
         <td>
-            <a href="#" class="borrar-curso" data-id="${id}"> X </a>
+            <button class="borrar-curso" data-id="${id}"> Eliminar </button>
         </td>
         `;
         //Agrega el HTML del carrito en el tbody
@@ -110,6 +122,8 @@ function carritoHTML() {
 
 //Elimina los cursos del tbody
 function limpiarHTML() {
+    //Forma lenta :: contenedorCarrito.innerHTML = '';
+    //Foma nueva
     while (contenedorCarrito.firstChild) {
         contenedorCarrito.removeChild(contenedorCarrito.firstChild)
     }
@@ -117,11 +131,24 @@ function limpiarHTML() {
 
 //Swal
 function msgSwal() {
-    swal.fire({
-        title: "Producto guardado correctamente",
-        text: "termina tu compra en el carrito de compras",
-        icon: "success",
-    });
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    })
+    Toast.fire({
+        icon: 'success',
+        title: "Producto guardado correctamente"
+    })
+
+    //text: "termina tu compra en el carrito de compras",
+
 }
 
 function msgSwalDelete() {
@@ -158,10 +185,6 @@ function msgSwalVaciar() {
         timerProgressBar: true,
         didOpen: () => {
             Swal.showLoading()
-            const b = Swal.getHtmlContainer().querySelector('b')
-            timerInterval = setInterval(() => {
-                b.textContent = Swal.getTimerLeft()
-            }, 100)
         },
         willClose: () => {
             clearInterval(timerInterval)
@@ -169,7 +192,7 @@ function msgSwalVaciar() {
     }).then((result) => {
         /* Read more about handling dismissals below */
         if (result.dismiss === Swal.DismissReason.timer) {
-            console.log('I was closed by the timer')
+            console.log('Eliminado producto del carrito exitosamente')
         }
     })
 }
