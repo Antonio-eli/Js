@@ -36,6 +36,8 @@ function eliminarCurso(e) {
         const cursoId = e.target.getAttribute('data-id');
         console.log("cursoId", cursoId);
         articulosCarrito.some(curso => {
+
+            console.log(curso.precio);
             if (curso.id === cursoId) {
                 if (curso.cantidad > 1) {
                     curso.cantidad--;
