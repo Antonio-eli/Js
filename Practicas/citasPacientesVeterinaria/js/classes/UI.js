@@ -1,5 +1,5 @@
-import { eliminarCita, editarCita } from '../funciones.js';
-import { listadoCitas } from '../selectores.js';
+import { eliminarCita, editarCita, DB } from '../funciones.js';
+import { listadoCitas, heading } from '../selectores.js';
 
 class UI {
     imprimirAlerta(mensaje, tipo) {
@@ -23,59 +23,97 @@ class UI {
         }, 4000);
     }
 
-    imprimirCitas({ citas }) {
+    imprimirCitas() {
         this.limpiarHtml();
-        citas.forEach(cita => {
-            const { mascota, propietario, telefono, fecha, hora, sintomas, id } = cita;
-            const divCita = document.createElement('div');
-            divCita.classList.add('cita', 'p-3');
-            divCita.dataset.id = id;
 
-            //Scripting de los datos de la cita
-            const mascotaParrafo = document.createElement('h2');
-            mascotaParrafo.classList.add('card-title', 'font-weight-bolder');
-            mascotaParrafo.textContent = mascota;
+        //leemos el contenido de la base de datos
+        const objectStore = DB.transaction('citasModulo').objectStore('citasModulo');
 
-            const propietarioParrafo = document.createElement('p');
-            propietarioParrafo.innerHTML = `<span class="font-weight-bolder">Propietario: </span> ${propietario}`;
+        //accedemos a los valores que podemos acceder, esto para poder mostrar el mensaje del heading
+        const total = objectStore.count();
 
-            const telefonoParrafo = document.createElement('p');
-            telefonoParrafo.innerHTML = `<span class="font-weight-bolder">Teléfono: </span> ${telefono}`;
+        //por razones del scope tendremos que asignar la funcion textHeading a una variable
+        const mostrarHeading = this.textoHeading;
 
-            const fechaParrafo = document.createElement('p');
-            fechaParrafo.innerHTML = `<span class="font-weight-bolder">Fecha: </span> ${fecha}`;
+        //para acceder unicamente a la cantidad de datos que contiene la base de datos
+        total.onsuccess = function () {
+            mostrarHeading(total.result);
+        }
 
-            const horaParrafo = document.createElement('p');
-            horaParrafo.innerHTML = `<span class="font-weight-bolder">Hora: </span> ${hora}`;
 
-            const sintomasParrafo = document.createElement('p');
-            sintomasParrafo.innerHTML = `<span class="font-weight-bolder">Sintomas: </span> ${sintomas}`;
+        //Aquí accederemos a las filas de le base de datos y sera con openCursor
+        objectStore.openCursor().onsuccess = function(e) {
+            console.log(e.target.result);
+            //trae los valores que hay en la base de datos
+            const cursor = e.target.result;
 
-            //Btn eliminar cita
-            const btnEliminar = document.createElement('button');
-            btnEliminar.classList.add('btn', 'btn-danger', 'mr-2');
-            btnEliminar.textContent = 'Eliminar cita';
-            btnEliminar.onclick = () => eliminarCita(id);
+            //si existen valores en la base de datos entonces mostraremos en la pantalla
+            if (cursor) {
+                const { mascota, propietario, telefono, fecha, hora, sintomas, id } = cursor.value;
+                const divCita = document.createElement('div');
+                divCita.classList.add('cita', 'p-3');
+                divCita.dataset.id = id;
 
-            //Editar la cita
-            const btnEditar = document.createElement('button');
-            btnEditar.classList.add('btn', 'btn-info');
-            btnEditar.textContent = 'Editar cita';
-            btnEditar.onclick = () => editarCita(cita);
+                //Scripting de los datos de la cita
+                const mascotaParrafo = document.createElement('h2');
+                mascotaParrafo.classList.add('card-title', 'font-weight-bolder');
+                mascotaParrafo.textContent = mascota;
 
-            //Agregar los parrafos al divCita
-            divCita.appendChild(mascotaParrafo);
-            divCita.appendChild(propietarioParrafo);
-            divCita.appendChild(telefonoParrafo);
-            divCita.appendChild(fechaParrafo);
-            divCita.appendChild(horaParrafo);
-            divCita.appendChild(sintomasParrafo);
-            divCita.appendChild(btnEliminar);
-            divCita.appendChild(btnEditar);
+                const propietarioParrafo = document.createElement('p');
+                propietarioParrafo.innerHTML = `<span class="font-weight-bolder">Propietario: </span> ${propietario}`;
 
-            //Agregar las citas al Html
-            listadoCitas.appendChild(divCita);
-        });
+                const telefonoParrafo = document.createElement('p');
+                telefonoParrafo.innerHTML = `<span class="font-weight-bolder">Teléfono: </span> ${telefono}`;
+
+                const fechaParrafo = document.createElement('p');
+                fechaParrafo.innerHTML = `<span class="font-weight-bolder">Fecha: </span> ${fecha}`;
+
+                const horaParrafo = document.createElement('p');
+                horaParrafo.innerHTML = `<span class="font-weight-bolder">Hora: </span> ${hora}`;
+
+                const sintomasParrafo = document.createElement('p');
+                sintomasParrafo.innerHTML = `<span class="font-weight-bolder">Sintomas: </span> ${sintomas}`;
+
+                //Btn eliminar cita
+                const btnEliminar = document.createElement('button');
+                btnEliminar.classList.add('btn', 'btn-danger', 'mr-2');
+                btnEliminar.textContent = 'Eliminar cita';
+                btnEliminar.onclick = () => eliminarCita(id);
+
+                //Editar la cita
+                const btnEditar = document.createElement('button');
+                const cita = cursor.value;
+                btnEditar.onclick = () => cargarEdicion(cita);
+                btnEditar.classList.add('btn', 'btn-info');
+                btnEditar.textContent = 'Editar cita';
+                btnEditar.onclick = () => editarCita(cita);
+
+                //Agregar los parrafos al divCita
+                divCita.appendChild(mascotaParrafo);
+                divCita.appendChild(propietarioParrafo);
+                divCita.appendChild(telefonoParrafo);
+                divCita.appendChild(fechaParrafo);
+                divCita.appendChild(horaParrafo);
+                divCita.appendChild(sintomasParrafo);
+                divCita.appendChild(btnEliminar);
+                divCita.appendChild(btnEditar);
+
+                //Agregar las citas al Html
+                listadoCitas.appendChild(divCita);
+
+                //Para avanzar a la siguiente fila y de esta manera mostrar todas las filas
+                cursor.continue();
+
+            }
+        }
+    }
+
+    textoHeading(resultado) {
+        if (resultado > 0) {
+            heading.textContent = 'Administra tus Citas '
+        } else {
+            heading.textContent = 'No hay Citas, comienza creando una'
+        }
     }
 
     limpiarHtml() {

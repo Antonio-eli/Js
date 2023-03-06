@@ -1,4 +1,4 @@
-import { datosCita, nuevaCita } from '../funciones.js';
+import { datosCita, nuevaCita, baseDatos } from '../funciones.js';
 import { inputMascota, inputPropietario, inputTelefono, inputFecha, inputHora, inputSintomas, formulario } from '../selectores.js';
 
 class App {
@@ -7,6 +7,7 @@ class App {
     }
 
     initApp() {
+        baseDatos();
         inputMascota.addEventListener('change', datosCita);
         inputPropietario.addEventListener('change', datosCita);
         inputTelefono.addEventListener('change', datosCita);
